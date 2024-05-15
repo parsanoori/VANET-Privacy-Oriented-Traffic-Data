@@ -1,122 +1,188 @@
 import inspect
 import sys
-from Blockchain import *
-from GlobalBlockchainNode import *
-from LocalBlockchainNode import *
-
-localBlockChain = LocalBlockchain("nh1")
-globalBLockChain = Blockchain()
-facilitator = GlobalBlockchainNode(globalBLockChain)
-localBlockChainNode = LocalBlockchainNode(localBlockChain)  # local node 0
-bridgeLocalToGlobal = LocalBlockchainNode(localBlockChain, globalBLockChain)  # local node 1
-secondBridgeLocalToGlobal = LocalBlockchainNode(localBlockChain, globalBLockChain)  # local node 2
-neighborhood_map = localBlockChainNode.street_graph
-edges = list(neighborhood_map.edges)
-
-threads = []
+from PartialScheme import *
+from time import sleep
 
 
-def runServers():
-    threads.append(facilitator.run_threaded())
-    threads.append(localBlockChainNode.run_threaded())
-    for t in bridgeLocalToGlobal.run_threaded():
-        threads.append(t)
-    for t in secondBridgeLocalToGlobal.run_threaded():
-        threads.append(t)
-    return threads
+class Simulation:
+    def __init__(self, map_name: str, quiet: bool):
+        self.localBlockChain = LocalBlockchain(map_name)
+        self.globalBlockChain = Blockchain.Blockchain()
+        self.facilitator = GlobalBlockchainNode(self.globalBlockChain)
+        self.localBlockChainNode = LocalBlockchainNode(self.localBlockChain)  # local node 0
+        self.bridgeLocalToGlobal = LocalBlockchainNode(self.localBlockChain, self.globalBlockChain)  # local node 1
+        self.secondBridgeLocalToGlobal = LocalBlockchainNode(self.localBlockChain,
+                                                             self.globalBlockChain)  # local node 2
+        self.neighborhood_map = self.localBlockChainNode.street_graph
+        self.edges = list(self.neighborhood_map.edges)
+
+        self.time_unit = 0.5
+
+        self.threads = []
+        self.nodes = [self.facilitator, self.localBlockChainNode, self.bridgeLocalToGlobal,
+                      self.secondBridgeLocalToGlobal]
+
+        if quiet:
+            for node in self.nodes:
+                node.quiet = True
+
+        self.quiet = quiet
+
+    def runServers(self):
+        for node in self.nodes:
+            if hasattr(node, 'run_threaded'):
+                result = node.run_threaded()
+                self.threads.extend(result if isinstance(result, list) else [result])
+
+    def simulation(self):
+        # request facilitator until the answer
+        if not self.quiet:
+            print(f'facilitator: {self.facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
+        if not self.quiet:
+            print("Requesting to be a facilitator")
+        self.bridgeLocalToGlobal.request_facilitating()
+        while self.facilitator.get_node_state() != GlobalBlockchainNodeState.WAITING_FOR_FIRST_ENCRYPTED_AVERAGE_TRAFFIC:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(f'facilitator: {self.facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
+        while self.localBlockChainNode.get_node_state() != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(f'localBlockChainNode {self.localBlockChainNode.get_node_state()} {inspect.currentframe().f_lineno}')
+        while self.secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(
+                f'secondBridgeLocalToGlobal {self.secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+        # authentication with facilitator completed
+        # send encrypted traffic logs
+        if not self.quiet:
+            print("Sending encrypted traffic logs")
+        self.localBlockChainNode.send_encrypted_traffic_log(self.edges[0], 10)
+        self.localBlockChainNode.send_encrypted_traffic_log(self.edges[1], 20)
+        self.localBlockChainNode.send_encrypted_traffic_log(self.edges[0], 30)
+        self.localBlockChainNode.send_encrypted_traffic_log(self.edges[1], 40)
+
+        if not self.quiet:
+            print(f'localBlockChainNode {self.localBlockChainNode.get_node_state()} {inspect.currentframe().f_lineno}')
+
+        # wait for traffic update interval to be reached
+        self.localBlockChainNode.debug = True
+        while self.localBlockChainNode.get_node_state() != NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED:
+            sleep(1)
+        if not self.quiet:
+            print(f'localBlockChainNode {self.localBlockChainNode.get_node_state()} {inspect.currentframe().f_lineno}')
+
+        # reached the traffic update interval
+        # first node to send encrypted average traffic
+        if not self.quiet:
+            print(f'First node sending encrypted average traffic {inspect.currentframe().f_lineno}')
+        self.bridgeLocalToGlobal.add_traffic_to_chains()
+
+        # wait for second node to get updated
+        while self.secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.FIRST_NODE_AGGREGATED_DATA:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(
+                f'secondBridgeLocalToGlobal {self.secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+        self.secondBridgeLocalToGlobal.add_traffic_to_chains()
+
+        # wait for the first node to get updated
+        while self.bridgeLocalToGlobal.get_node_state() != NeighborHoodState.SECOND_NODE_AGGREGATED_DATA:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(f'bridgeLocalToGlobal {self.bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+        self.bridgeLocalToGlobal.send_parameters()
+
+        # wait for the second node to get updated
+        while self.secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.FIRST_NODE_PARAMETERS_SENT:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(
+                f'secondBridgeLocalToGlobal {self.secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+        self.secondBridgeLocalToGlobal.send_parameters()
+
+        # wait for the first node to get updated
+        while self.bridgeLocalToGlobal.get_node_state() != NeighborHoodState.SECOND_NODE_PARAMETERS_SENT:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(f'bridgeLocalToGlobal {self.bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+
+        # sending decryption request
+        if not self.quiet:
+            print(f"Sending decryption request to facilitator {inspect.currentframe().f_lineno}")
+        self.bridgeLocalToGlobal.send_decryption_request()
+
+        # wait for the facilitator to send the decrypted average traffic
+        while self.facilitator.get_node_state() != GlobalBlockchainNodeState.IDLE:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(f'facilitator {self.facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
+
+        # wait for the first node to get updated
+        if not self.quiet:
+            print(f'bridgeLocalToGlobal {self.bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+        while self.bridgeLocalToGlobal.get_node_state() != NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(f'bridgeLocalToGlobal {self.bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+
+        # wait for the second node to get updated
+        while self.secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
+            sleep(self.time_unit)
+        if not self.quiet:
+            print(
+                f'secondBridgeLocalToGlobal {self.secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
+
+        # approve the decryption
+        if not self.quiet:
+            print(f'Approving the decryption {inspect.currentframe().f_lineno}')
+        self.bridgeLocalToGlobal.approve_results()
+
+    def run(self):
+        self.runServers()
+        self.simulation()
+        if not self.quiet:
+            print(f'local blockchain block size: {self.bridgeLocalToGlobal.blockchain.get_data_size()}')
+        if not self.quiet:
+            print(f'global blockchain block size: {self.facilitator.blockchain.get_data_size()}')
+
+    def get_simulation_data(self):
+        global_blockchain_size = self.facilitator.blockchain.get_data_size()
+        local_blockchain_size = self.bridgeLocalToGlobal.blockchain.get_data_size()
+        traffic_log_size = self.localBlockChainNode.traffic_log_size
+        traffic_block_size = self.bridgeLocalToGlobal.encrypted_traffic_block_size
+        calculating_traffic_log_encryption_time = (
+            self.localBlockChainNode.calculating_traffic_log_encryption_time.total_seconds())
+        calculating_encrypted_average_time = self.bridgeLocalToGlobal.calculating_encrypted_average_time.total_seconds()
+        calculating_decryption_time = self.facilitator.first_decryption_time.total_seconds()
+        data = {
+            "global_blockchain_size": global_blockchain_size,
+            "local_blockchain_size": local_blockchain_size,
+            "traffic_log_size": traffic_log_size,
+            "traffic_block_size": traffic_block_size,
+            "calculating_traffic_log_encryption_time": calculating_traffic_log_encryption_time,
+            "calculating_encrypted_average_time": calculating_encrypted_average_time,
+            "calculating_decryption_time": calculating_decryption_time
+        }
+        return data
+
+    def end_run(self):
+        # stop all other threads here
+        for n in self.nodes:
+            n.system_running = False
+        for t in self.threads:
+            t.join()
+        if not self.quiet:
+            print(f'after simulation')
 
 
-time_unit = 0.1
+def main():
+    simulation = Simulation("nh1", True)
+    simulation.run()
+    print(simulation.get_simulation_data())
+    simulation.end_run()
 
 
-def simulation():
-    # request facilitator until the answer
-    print(f'facilitator: {facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
-    print("Requesting to be a facilitator")
-    bridgeLocalToGlobal.request_facilitating()
-    while facilitator.get_node_state() != GlobalBlockchainNodeState.WAITING_FOR_FIRST_ENCRYPTED_AVERAGE_TRAFFIC:
-        sleep(time_unit)
-    print(f'facilitator: {facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
-    while localBlockChainNode.get_node_state() != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
-        sleep(time_unit)
-    print(f'localBlockChainNode {localBlockChainNode.get_node_state()} {inspect.currentframe().f_lineno}')
-    while secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
-        sleep(time_unit)
-    print(f'secondBridgeLocalToGlobal {secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-    # authentication with facilitator completed
-    # send encrypted traffic logs
-    print("Sending encrypted traffic logs")
-    localBlockChainNode.send_encrypted_traffic_log(edges[0], 10)
-    localBlockChainNode.send_encrypted_traffic_log(edges[1], 20)
-    localBlockChainNode.send_encrypted_traffic_log(edges[0], 30)
-    localBlockChainNode.send_encrypted_traffic_log(edges[1], 40)
-
-    print(f'localBlockChainNode {localBlockChainNode.get_node_state()} {inspect.currentframe().f_lineno}')
-
-    # wait for traffic update interval to be reached
-    localBlockChainNode.debug = True
-    while localBlockChainNode.get_node_state() != NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED:
-        sleep(1)
-    print(f'localBlockChainNode {localBlockChainNode.get_node_state()} {inspect.currentframe().f_lineno}')
-
-    # reached the traffic update interval
-    # first node to send encrypted average traffic
-    print(f'First node sending encrypted average traffic {inspect.currentframe().f_lineno}')
-    bridgeLocalToGlobal.add_traffic_to_chains()
-
-    # wait for second node to get updated
-    while secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.FIRST_NODE_AGGREGATED_DATA:
-        sleep(time_unit)
-    print(f'secondBridgeLocalToGlobal {secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-    secondBridgeLocalToGlobal.add_traffic_to_chains()
-
-    # wait for the first node to get updated
-    while bridgeLocalToGlobal.get_node_state() != NeighborHoodState.SECOND_NODE_AGGREGATED_DATA:
-        sleep(time_unit)
-    print(f'bridgeLocalToGlobal {bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-    bridgeLocalToGlobal.send_parameters()
-
-    # wait for the second node to get updated
-    while secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.FIRST_NODE_PARAMETERS_SENT:
-        sleep(time_unit)
-    print(f'secondBridgeLocalToGlobal {secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-    secondBridgeLocalToGlobal.send_parameters()
-
-    # wait for the first node to get updated
-    while bridgeLocalToGlobal.get_node_state() != NeighborHoodState.SECOND_NODE_PARAMETERS_SENT:
-        sleep(time_unit)
-    print(f'bridgeLocalToGlobal {bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-
-    # sending decryption request
-    print(f"Sending decryption request to facilitator {inspect.currentframe().f_lineno}")
-    bridgeLocalToGlobal.send_decryption_request()
-
-    # wait for the facilitator to send the decrypted average traffic
-    while facilitator.get_node_state() != GlobalBlockchainNodeState.IDLE:
-        sleep(time_unit)
-    print(f'facilitator {facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
-
-    # wait for the first node to get updated
-    print(f'bridgeLocalToGlobal {bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-    while bridgeLocalToGlobal.get_node_state() != NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
-        sleep(time_unit)
-    print(f'bridgeLocalToGlobal {bridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-
-    # wait for the second node to get updated
-    while secondBridgeLocalToGlobal.get_node_state() != NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
-        sleep(time_unit)
-    print(f'secondBridgeLocalToGlobal {secondBridgeLocalToGlobal.get_node_state()} {inspect.currentframe().f_lineno}')
-
-    # approve the decryption
-    print(f'Approving the decryption {inspect.currentframe().f_lineno}')
-
-    bridgeLocalToGlobal.approve_results()
-
-
-if __name__ == "__main__":
-    runServers()
-    simulation()
-    for thread in threads:
-        thread.join()
-    # end all threads and exit
-    sys.exit(0)
+if __name__ == '__main__':
+    main()

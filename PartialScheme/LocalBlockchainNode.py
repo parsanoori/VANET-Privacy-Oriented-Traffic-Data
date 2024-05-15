@@ -1,13 +1,14 @@
 from tqdm import tqdm
-from Blockchain import *
+from Blockchain import Blockchain
+from .LocalBlockchain import LocalBlockchain
 import networkx.readwrite.gml as gml
 from typing import Dict
 from typing import Optional
 from utils import calc_edge_hash
 from ConfigParameters import *
 import datetime
-from BlockchainNode import BlockchainNode
-from GlobalBlockchainNode import GlobalBlockchainNode
+from Blockchain.BlockchainNode import BlockchainNode
+from PartialScheme.GlobalBlockchainNode import GlobalBlockchainNode
 from phe import paillier
 from enum import Enum
 from time import sleep
@@ -55,6 +56,9 @@ class IncorrectStateForAction(Exception):
         super().__init__(self.message)
 
 
+sleep_time = 0.3
+
+
 class LocalBlockchainNode(BlockchainNode):
     def __init__(self, local_blockchain: LocalBlockchain, global_blockchain: Optional[Blockchain] = None):
         # local blockchain node is primarily a local blockchain node, but it can also be a global blockchain node too
@@ -75,6 +79,7 @@ class LocalBlockchainNode(BlockchainNode):
         self.neighborhood_encrypted_traffic = None
         self.state_thread = threading.Thread(target=self.update_state_periodically)
         self.forward_related_blocks_thread = threading.Thread(target=self.forward_related_blocks_periodically)
+        self.system_running = True
         self.debug = False
         self.a: int = 0
         self.b: int = 0
@@ -86,6 +91,11 @@ class LocalBlockchainNode(BlockchainNode):
         self.f_ab_average_traffic: Dict[str, int] = {}
         self.f_cd_average_traffic: Dict[str, int] = {}
         self.raw_decrypted_traffic: Dict[str, int] = {}
+        self.quiet = False
+        self.encrypted_traffic_block_size: int = 0
+        self.traffic_log_size: int = 0
+        self.calculating_traffic_log_encryption_time = None
+        self.calculating_encrypted_average_time = None
 
     def run_threaded(self):
         if self.global_node is not None:
@@ -97,14 +107,14 @@ class LocalBlockchainNode(BlockchainNode):
             return self.state_thread
 
     def update_state_periodically(self):
-        while True:
+        while self.system_running:
             self.update_state()
-            sleep(0.1)
+            sleep(sleep_time)
 
     def forward_related_blocks_periodically(self):
-        while True:
+        while self.system_running:
             self.forward_global_related_blocks()
-            sleep(0.1)
+            sleep(sleep_time)
 
     def update_state(self):
         self.state_lock.acquire()
@@ -114,55 +124,75 @@ class LocalBlockchainNode(BlockchainNode):
         block_type = block.data["type"]
         if block_type == "request_facilitator":
             if self.state == NeighborHoodState.FACILITATOR_REQUEST_NOT_SENT:
-                print(f"Local node {self.node_id}: Facilitator request received. Now facilitator should respond")
+                if not self.quiet:
+                    print(f"Local node {self.node_id}: Facilitator request received. Now facilitator should respond")
             self.state = NeighborHoodState.FACILITATOR_REQUEST_SENT
         elif block_type == "facilitator_accepted_request":
             if self.state == NeighborHoodState.FACILITATOR_REQUEST_SENT:
-                print(f"Local node {self.node_id}: "
-                      f"Facilitator accepted request.")
+                if not self.quiet:
+                    print(f"Local node {self.node_id}: "
+                          f"Facilitator accepted request.")
             self.state = NeighborHoodState.FACILITATOR_REQUEST_ANSWERED
             self.update_facilitator_data(block)
         elif self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
             if self.facilitator_response_time + datetime.timedelta(
                     seconds=traffic_update_interval_in_seconds) < datetime.datetime.now():
                 if self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
-                    print(
-                        f"Local node {self.node_id}: Traffic update interval reached. Now first node should send encrypted average traffic.")
+                    if not self.quiet:
+                        print(
+                            f"Local node {self.node_id}: Traffic update interval reached. Now first node should send encrypted average traffic.")
                 self.state = NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED
         elif block_type == "f_ab_encrypted_average_traffic":
             if self.state == NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED:
-                print(
-                    f"Local node {self.node_id}: First Node Aggregated Data Received. Now second node Parameters should be sent.")
+                if not self.quiet:
+                    print(
+                        f"Local node {self.node_id}: First Node Aggregated Data Received. Now second node Parameters should be sent.")
             self.state = NeighborHoodState.FIRST_NODE_AGGREGATED_DATA
         elif block_type == "f_cd_encrypted_average_traffic":
             if self.state == NeighborHoodState.FIRST_NODE_AGGREGATED_DATA:
-                print(
-                    f"Local node {self.node_id}: Second Node Aggregated Data Received. Now first node Parameters should be sent.")
+                if not self.quiet:
+                    print(
+                        f"Local node {self.node_id}: Second Node Aggregated Data Received. Now first node Parameters should be sent.")
             self.state = NeighborHoodState.SECOND_NODE_AGGREGATED_DATA
         elif block_type == "first_node_parameters":
             self.a = int(block.data["a"])
             self.b = int(block.data["b"])
+            if self.a == 0:
+                raise ValueError("a is 0")
+            if self.b == 0:
+                raise ValueError("b is 0")
             if self.state == NeighborHoodState.SECOND_NODE_AGGREGATED_DATA:
-                print(f'L{self.node_id}: First Node Parameters Received. a: {self.a}, b: {self.b}. Now the second parameters shoudl be sent')
-            self.state = NeighborHoodState.FIRST_NODE_PARAMETERS_SENT
+                if not self.quiet:
+                    print(
+                        f'Local node {self.node_id}: First Node Parameters Received. a: {self.a}, b: {self.b}. Now the second parameters shoudl be sent')
+                self.state = NeighborHoodState.FIRST_NODE_PARAMETERS_SENT
         elif block_type == "second_node_parameters":
             self.c = int(block.data["c"])
             self.d = int(block.data["d"])
+            if self.c == 0:
+                raise ValueError("c is 0")
+            if self.d == 0:
+                raise ValueError("d is 0")
             if self.state == NeighborHoodState.FIRST_NODE_PARAMETERS_SENT:
-                print(f'Local node {self.node_id}: Second Node Parameters Received. c: {self.c}, d: {self.d}. Now the decryption request should be sent.')
-            self.state = NeighborHoodState.SECOND_NODE_PARAMETERS_SENT
+                if not self.quiet:
+                    print(
+                        f'Local node {self.node_id}: Second Node Parameters Received. c: {self.c}, d: {self.d}. Now the decryption request should be sent.')
+                self.state = NeighborHoodState.SECOND_NODE_PARAMETERS_SENT
         elif block_type == "send_decryption":
             if self.state == NeighborHoodState.SECOND_NODE_PARAMETERS_SENT:
-                print(f"Local node {self.node_id}: Decryption request received. Now the decryption should be sent.")
+                if not self.quiet:
+                    print(f"Local node {self.node_id}: Decryption request received. Now the decryption should be sent.")
             self.state = NeighborHoodState.DECRYPTION_REQUEST_SENT
         elif block_type == "decrypted_average_traffic":
             if self.state == NeighborHoodState.DECRYPTION_REQUEST_SENT:
-                print(f"Local node {self.node_id}: Decrypted average traffic received.")
+                if not self.quiet:
+                    print(f"Local node {self.node_id}: Decrypted average traffic received.")
             self.state = NeighborHoodState.DECRYPTION_RESULT_RECEIVED
             self.save_average_traffic(block)
         elif block_type == "approved" or block_type == "disapproved":
             if self.state == NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
-                print(f"Local node {self.node_id}: Results {block_type}.")
+                if not self.quiet:
+                    print(f"Local node {self.node_id}: Results {block_type}.")
             self.state = NeighborHoodState.FACILITATOR_REQUEST_NOT_SENT
         self.state_lock.release()
 
@@ -242,12 +272,16 @@ class LocalBlockchainNode(BlockchainNode):
         if self.state != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
             raise IncorrectStateForAction(self.state, "send_encrypted_traffic_log")
         edge_hash = self.street_graph_edges_backward[edge]
+        start = datetime.datetime.now()
         traffic_speed_block = {
             "type": "encrypted_traffic_log",
             "edge_hash": edge_hash,
             "speed": self.facilitator_pubkey.encrypt(speed)
         }
+        end = datetime.datetime.now()
+        self.calculating_traffic_log_encryption_time = end - start
         self.blockchain.add_block(traffic_speed_block)
+        self.traffic_log_size = len(str(traffic_speed_block))
         return traffic_speed_block
 
     # ================== step 4&5 ==================
@@ -291,13 +325,20 @@ class LocalBlockchainNode(BlockchainNode):
 
         self.generate_parameters()
 
+        start = datetime.datetime.now()
         traffic = self._calculate_neighborhood_encrypted_average_traffic()
+        end = datetime.datetime.now()
+        self.calculating_encrypted_average_time = end - start
+        if not self.quiet:
+            print(f"Local node {self.node_id}: Calculated encrypted average traffic in {end - start} seconds")
         traffic_block = {
             "type": "f_ab_encrypted_average_traffic" if self.first_node else "f_cd_encrypted_average_traffic",
             "average_traffic": traffic
         }
         self.blockchain.add_block(traffic_block)
         traffic_block["neighborhood"] = self.neighborhood
+        length = len(str(traffic_block))
+        self.encrypted_traffic_block_size = length
         self.global_node.blockchain.add_block(traffic_block)
 
     # ================ end of step 4&5 ================
@@ -351,7 +392,8 @@ class LocalBlockchainNode(BlockchainNode):
         raw_decrypted_traffic = {}
         for key, value in tqdm(self.f_ab_average_traffic.items()):
             if key not in self.f_cd_average_traffic:
-                print(f'key {key} not in f_cd_average_traffic')
+                if not self.quiet:
+                    print(f'key {key} not in f_cd_average_traffic')
                 self.blockchain.add_block({
                     "type": "disapproved"
                 })
@@ -360,7 +402,8 @@ class LocalBlockchainNode(BlockchainNode):
             node_two_value = self.f_cd_average_traffic[key]
             raw_node_two = (node_two_value - self.d) / self.c
             if raw_node_one != raw_node_two:
-                print(f'raw_node_one {raw_node_one} != raw_node_two {raw_node_two}')
+                if not self.quiet:
+                    print(f'raw_node_one {raw_node_one} != raw_node_two {raw_node_two}')
                 self.blockchain.add_block({
                     "type": "disapproved"
                 })

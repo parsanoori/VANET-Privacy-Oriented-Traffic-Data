@@ -1,5 +1,5 @@
-from Block import *
-from BlockchainNode import BlockchainNode
+from .Block import Block
+from .BlockchainNode import BlockchainNode
 from typing import List
 
 
@@ -88,8 +88,10 @@ class Blockchain:
     def add_node(self, node: 'BlockchainNode'):
         self.nodes.append(node)
 
-
-class LocalBlockchain(Blockchain):
-    def __init__(self, neighborhood: str):
-        super().__init__()
-        self.neighborhood = neighborhood
+    def get_data_size(self):
+        size = 0
+        block = self.head.next_block
+        while block is not None:
+            size += len(str(block.data))
+            block = block.next_block
+        return size
