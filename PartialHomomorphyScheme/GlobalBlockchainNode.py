@@ -1,11 +1,8 @@
 from typing import Dict
-
 from Blockchain.Blockchain import Blockchain
 from Blockchain.BlockchainNode import BlockchainNode
 from phe import paillier
-
 from enum import Enum
-
 from time import sleep
 import datetime
 import threading
@@ -18,9 +15,6 @@ class GlobalBlockchainNodeState(Enum):
     WAITING_FOR_DECRYPTION_REQUEST = 3
 
 
-sleep_time = 0.5
-
-
 class InvalidStateError(Exception):
     def __init__(self, state: GlobalBlockchainNodeState, action: str):
         self.state = state
@@ -29,7 +23,8 @@ class InvalidStateError(Exception):
 
 
 class GlobalBlockchainNode(BlockchainNode):
-    def __init__(self, blockchain: Blockchain):
+    def __init__(self, blockchain: Blockchain, sleep_time: float = 0.2, traffic_update_interval_in_seconds: int = 10,
+                 quiet=False):
         super().__init__(blockchain)
         self.f_ab_decrypted_average_traffic: Dict[str, float] = {}
         self.f_cd_decrypted_average_traffic: Dict[str, float] = {}
@@ -40,8 +35,10 @@ class GlobalBlockchainNode(BlockchainNode):
         self.system_running = True
         self.first_decryption_time = None
         self.second_decryption_time = None
-        self.quiet = False
+        self.quiet = quiet
         self.decryption_block_size = 0
+        self.sleep_time = sleep_time
+        self.traffic_update_interval_in_seconds = traffic_update_interval_in_seconds
 
     def run_threaded(self):
         self.thread.start()
@@ -62,7 +59,7 @@ class GlobalBlockchainNode(BlockchainNode):
                 self.check_and_answer_decryption_request()
             else:
                 raise InvalidStateError(self.state, "run_server")
-            sleep(sleep_time)
+            sleep(self.sleep_time)
 
     def get_latest_block_of_type_for_current_neighborhood(self, block_type: str):
         latest_block = self.blockchain.tail

@@ -1,14 +1,12 @@
 from tqdm import tqdm
-from Blockchain import Blockchain
-from .LocalBlockchain import LocalBlockchain
+from Blockchain import Blockchain, LocalBlockchain
 import networkx.readwrite.gml as gml
 from typing import Dict
 from typing import Optional
 from utils import calc_edge_hash
-from ConfigParameters import *
 import datetime
 from Blockchain.BlockchainNode import BlockchainNode
-from PartialScheme.GlobalBlockchainNode import GlobalBlockchainNode
+from PartialHomomorphyScheme.GlobalBlockchainNode import GlobalBlockchainNode
 from phe import paillier
 from enum import Enum
 from time import sleep
@@ -56,11 +54,9 @@ class IncorrectStateForAction(Exception):
         super().__init__(self.message)
 
 
-sleep_time = 0.3
-
-
 class LocalBlockchainNode(BlockchainNode):
-    def __init__(self, local_blockchain: LocalBlockchain, global_blockchain: Optional[Blockchain] = None):
+    def __init__(self, local_blockchain: LocalBlockchain, global_blockchain: Optional[Blockchain] = None,
+                 sleep_time: float = 0.2, traffic_update_interval_in_seconds: int = 10, quiet=False):
         # local blockchain node is primarily a local blockchain node, but it can also be a global blockchain node too
         neighborhood = local_blockchain.neighborhood
         BlockchainNode.__init__(self, local_blockchain)
@@ -91,11 +87,13 @@ class LocalBlockchainNode(BlockchainNode):
         self.f_ab_average_traffic: Dict[str, int] = {}
         self.f_cd_average_traffic: Dict[str, int] = {}
         self.raw_decrypted_traffic: Dict[str, int] = {}
-        self.quiet = False
+        self.quiet = quiet
         self.encrypted_traffic_block_size: int = 0
         self.traffic_log_size: int = 0
         self.calculating_traffic_log_encryption_time = None
         self.calculating_encrypted_average_time = None
+        self.sleep_time = sleep_time
+        self.traffic_update_interval_in_seconds = traffic_update_interval_in_seconds
 
     def run_threaded(self):
         if self.global_node is not None:
@@ -109,12 +107,12 @@ class LocalBlockchainNode(BlockchainNode):
     def update_state_periodically(self):
         while self.system_running:
             self.update_state()
-            sleep(sleep_time)
+            sleep(self.sleep_time)
 
     def forward_related_blocks_periodically(self):
         while self.system_running:
             self.forward_global_related_blocks()
-            sleep(sleep_time)
+            sleep(self.sleep_time)
 
     def update_state(self):
         self.state_lock.acquire()
@@ -136,7 +134,7 @@ class LocalBlockchainNode(BlockchainNode):
             self.update_facilitator_data(block)
         elif self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
             if self.facilitator_response_time + datetime.timedelta(
-                    seconds=traffic_update_interval_in_seconds) < datetime.datetime.now():
+                    seconds=self.traffic_update_interval_in_seconds) < datetime.datetime.now():
                 if self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
                     if not self.quiet:
                         print(

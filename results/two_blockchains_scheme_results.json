@@ -1,0 +1,506 @@
+{
+  "nh1": {
+    "10": {
+      "calculating_average_traffic_time": 0.000459,
+      "average_traffic_block_size": 394,
+      "local_blockchain_data_size": 1032,
+      "global_blockchain_data_sze": 417,
+      "sending_traffic_logs_time": 6.5e-05
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.000265,
+      "average_traffic_block_size": 395,
+      "local_blockchain_data_size": 1033,
+      "global_blockchain_data_sze": 418,
+      "sending_traffic_logs_time": 0.000114
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.000278,
+      "average_traffic_block_size": 399,
+      "local_blockchain_data_size": 1616,
+      "global_blockchain_data_sze": 422,
+      "sending_traffic_logs_time": 0.000214
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.000386,
+      "average_traffic_block_size": 432,
+      "local_blockchain_data_size": 2230,
+      "global_blockchain_data_sze": 455,
+      "sending_traffic_logs_time": 0.000305
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.000432,
+      "average_traffic_block_size": 461,
+      "local_blockchain_data_size": 2836,
+      "global_blockchain_data_sze": 484,
+      "sending_traffic_logs_time": 0.000377
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.000379,
+      "average_traffic_block_size": 463,
+      "local_blockchain_data_size": 4000,
+      "global_blockchain_data_sze": 486,
+      "sending_traffic_logs_time": 0.000583
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.001061,
+      "average_traffic_block_size": 505,
+      "local_blockchain_data_size": 5193,
+      "global_blockchain_data_sze": 528,
+      "sending_traffic_logs_time": 0.000742
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.000925,
+      "average_traffic_block_size": 519,
+      "local_blockchain_data_size": 6376,
+      "global_blockchain_data_sze": 542,
+      "sending_traffic_logs_time": 0.001245
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.0009,
+      "average_traffic_block_size": 531,
+      "local_blockchain_data_size": 9278,
+      "global_blockchain_data_sze": 554,
+      "sending_traffic_logs_time": 0.001624
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.001379,
+      "average_traffic_block_size": 546,
+      "local_blockchain_data_size": 12191,
+      "global_blockchain_data_sze": 569,
+      "sending_traffic_logs_time": 0.002012
+    }
+  },
+  "nh2": {
+    "10": {
+      "calculating_average_traffic_time": 0.000241,
+      "average_traffic_block_size": 565,
+      "local_blockchain_data_size": 1204,
+      "global_blockchain_data_sze": 588,
+      "sending_traffic_logs_time": 0.000124
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.00019,
+      "average_traffic_block_size": 567,
+      "local_blockchain_data_size": 1206,
+      "global_blockchain_data_sze": 590,
+      "sending_traffic_logs_time": 0.000112
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.000357,
+      "average_traffic_block_size": 585,
+      "local_blockchain_data_size": 1801,
+      "global_blockchain_data_sze": 608,
+      "sending_traffic_logs_time": 0.000201
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.000396,
+      "average_traffic_block_size": 615,
+      "local_blockchain_data_size": 2410,
+      "global_blockchain_data_sze": 638,
+      "sending_traffic_logs_time": 0.000295
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.000723,
+      "average_traffic_block_size": 609,
+      "local_blockchain_data_size": 2986,
+      "global_blockchain_data_sze": 632,
+      "sending_traffic_logs_time": 0.000372
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.000547,
+      "average_traffic_block_size": 652,
+      "local_blockchain_data_size": 4190,
+      "global_blockchain_data_sze": 675,
+      "sending_traffic_logs_time": 0.000787
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.000751,
+      "average_traffic_block_size": 659,
+      "local_blockchain_data_size": 5348,
+      "global_blockchain_data_sze": 682,
+      "sending_traffic_logs_time": 0.000859
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.001168,
+      "average_traffic_block_size": 672,
+      "local_blockchain_data_size": 6523,
+      "global_blockchain_data_sze": 695,
+      "sending_traffic_logs_time": 0.000924
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.001093,
+      "average_traffic_block_size": 757,
+      "local_blockchain_data_size": 9507,
+      "global_blockchain_data_sze": 780,
+      "sending_traffic_logs_time": 0.000633
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.00241,
+      "average_traffic_block_size": 758,
+      "local_blockchain_data_size": 12394,
+      "global_blockchain_data_sze": 781,
+      "sending_traffic_logs_time": 0.001817
+    }
+  },
+  "nh3": {
+    "10": {
+      "calculating_average_traffic_time": 0.000358,
+      "average_traffic_block_size": 598,
+      "local_blockchain_data_size": 1250,
+      "global_blockchain_data_sze": 621,
+      "sending_traffic_logs_time": 9.6e-05
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.000219,
+      "average_traffic_block_size": 610,
+      "local_blockchain_data_size": 1258,
+      "global_blockchain_data_sze": 633,
+      "sending_traffic_logs_time": 0.000112
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.000364,
+      "average_traffic_block_size": 606,
+      "local_blockchain_data_size": 1850,
+      "global_blockchain_data_sze": 629,
+      "sending_traffic_logs_time": 0.000206
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.000756,
+      "average_traffic_block_size": 664,
+      "local_blockchain_data_size": 2496,
+      "global_blockchain_data_sze": 687,
+      "sending_traffic_logs_time": 0.000116
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.000355,
+      "average_traffic_block_size": 614,
+      "local_blockchain_data_size": 3038,
+      "global_blockchain_data_sze": 637,
+      "sending_traffic_logs_time": 0.000393
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.000712,
+      "average_traffic_block_size": 674,
+      "local_blockchain_data_size": 4262,
+      "global_blockchain_data_sze": 697,
+      "sending_traffic_logs_time": 0.000456
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.00099,
+      "average_traffic_block_size": 690,
+      "local_blockchain_data_size": 5473,
+      "global_blockchain_data_sze": 713,
+      "sending_traffic_logs_time": 0.001047
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.001031,
+      "average_traffic_block_size": 765,
+      "local_blockchain_data_size": 6721,
+      "global_blockchain_data_sze": 788,
+      "sending_traffic_logs_time": 0.001139
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.001396,
+      "average_traffic_block_size": 802,
+      "local_blockchain_data_size": 9711,
+      "global_blockchain_data_sze": 825,
+      "sending_traffic_logs_time": 0.001342
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.001732,
+      "average_traffic_block_size": 819,
+      "local_blockchain_data_size": 12671,
+      "global_blockchain_data_sze": 842,
+      "sending_traffic_logs_time": 0.002139
+    }
+  },
+  "nh4": {
+    "10": {
+      "calculating_average_traffic_time": 0.00031,
+      "average_traffic_block_size": 792,
+      "local_blockchain_data_size": 1446,
+      "global_blockchain_data_sze": 815,
+      "sending_traffic_logs_time": 9.7e-05
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.000323,
+      "average_traffic_block_size": 795,
+      "local_blockchain_data_size": 1452,
+      "global_blockchain_data_sze": 818,
+      "sending_traffic_logs_time": 4.5e-05
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.000706,
+      "average_traffic_block_size": 801,
+      "local_blockchain_data_size": 2051,
+      "global_blockchain_data_sze": 824,
+      "sending_traffic_logs_time": 0.000197
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.000764,
+      "average_traffic_block_size": 820,
+      "local_blockchain_data_size": 2654,
+      "global_blockchain_data_sze": 843,
+      "sending_traffic_logs_time": 0.000308
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.000767,
+      "average_traffic_block_size": 824,
+      "local_blockchain_data_size": 3257,
+      "global_blockchain_data_sze": 847,
+      "sending_traffic_logs_time": 0.000247
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.000789,
+      "average_traffic_block_size": 860,
+      "local_blockchain_data_size": 4478,
+      "global_blockchain_data_sze": 883,
+      "sending_traffic_logs_time": 0.000818
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.001441,
+      "average_traffic_block_size": 890,
+      "local_blockchain_data_size": 5699,
+      "global_blockchain_data_sze": 913,
+      "sending_traffic_logs_time": 0.000761
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.001582,
+      "average_traffic_block_size": 953,
+      "local_blockchain_data_size": 6951,
+      "global_blockchain_data_sze": 976,
+      "sending_traffic_logs_time": 0.001939
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.00193,
+      "average_traffic_block_size": 973,
+      "local_blockchain_data_size": 9943,
+      "global_blockchain_data_sze": 996,
+      "sending_traffic_logs_time": 0.002236
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.002551,
+      "average_traffic_block_size": 1063,
+      "local_blockchain_data_size": 12983,
+      "global_blockchain_data_sze": 1086,
+      "sending_traffic_logs_time": 0.003329
+    }
+  },
+  "nh5": {
+    "10": {
+      "calculating_average_traffic_time": 0.000467,
+      "average_traffic_block_size": 968,
+      "local_blockchain_data_size": 1619,
+      "global_blockchain_data_sze": 991,
+      "sending_traffic_logs_time": 0.000108
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.00043,
+      "average_traffic_block_size": 969,
+      "local_blockchain_data_size": 1618,
+      "global_blockchain_data_sze": 992,
+      "sending_traffic_logs_time": 0.000582
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.00074,
+      "average_traffic_block_size": 976,
+      "local_blockchain_data_size": 2220,
+      "global_blockchain_data_sze": 999,
+      "sending_traffic_logs_time": 0.000318
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.000531,
+      "average_traffic_block_size": 991,
+      "local_blockchain_data_size": 2831,
+      "global_blockchain_data_sze": 1014,
+      "sending_traffic_logs_time": 0.000403
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.000648,
+      "average_traffic_block_size": 990,
+      "local_blockchain_data_size": 3416,
+      "global_blockchain_data_sze": 1013,
+      "sending_traffic_logs_time": 0.000393
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.001524,
+      "average_traffic_block_size": 1017,
+      "local_blockchain_data_size": 4622,
+      "global_blockchain_data_sze": 1040,
+      "sending_traffic_logs_time": 0.000893
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.002001,
+      "average_traffic_block_size": 1085,
+      "local_blockchain_data_size": 5876,
+      "global_blockchain_data_sze": 1108,
+      "sending_traffic_logs_time": 0.000994
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.003086,
+      "average_traffic_block_size": 1123,
+      "local_blockchain_data_size": 7106,
+      "global_blockchain_data_sze": 1146,
+      "sending_traffic_logs_time": 0.004458
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.003734,
+      "average_traffic_block_size": 1221,
+      "local_blockchain_data_size": 10156,
+      "global_blockchain_data_sze": 1244,
+      "sending_traffic_logs_time": 0.002071
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.003379,
+      "average_traffic_block_size": 1136,
+      "local_blockchain_data_size": 13055,
+      "global_blockchain_data_sze": 1159,
+      "sending_traffic_logs_time": 0.002619
+    }
+  },
+  "nh6": {
+    "10": {
+      "calculating_average_traffic_time": 0.000608,
+      "average_traffic_block_size": 1262,
+      "local_blockchain_data_size": 1919,
+      "global_blockchain_data_sze": 1285,
+      "sending_traffic_logs_time": 0.000126
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.000411,
+      "average_traffic_block_size": 1259,
+      "local_blockchain_data_size": 1911,
+      "global_blockchain_data_sze": 1282,
+      "sending_traffic_logs_time": 0.000586
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.000691,
+      "average_traffic_block_size": 1278,
+      "local_blockchain_data_size": 2527,
+      "global_blockchain_data_sze": 1301,
+      "sending_traffic_logs_time": 0.000254
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.001052,
+      "average_traffic_block_size": 1274,
+      "local_blockchain_data_size": 3116,
+      "global_blockchain_data_sze": 1297,
+      "sending_traffic_logs_time": 0.000389
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.001378,
+      "average_traffic_block_size": 1305,
+      "local_blockchain_data_size": 3746,
+      "global_blockchain_data_sze": 1328,
+      "sending_traffic_logs_time": 0.000449
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.002095,
+      "average_traffic_block_size": 1305,
+      "local_blockchain_data_size": 4931,
+      "global_blockchain_data_sze": 1328,
+      "sending_traffic_logs_time": 0.000893
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.00157,
+      "average_traffic_block_size": 1364,
+      "local_blockchain_data_size": 6167,
+      "global_blockchain_data_sze": 1387,
+      "sending_traffic_logs_time": 0.000811
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.00163,
+      "average_traffic_block_size": 1422,
+      "local_blockchain_data_size": 7432,
+      "global_blockchain_data_sze": 1445,
+      "sending_traffic_logs_time": 0.000826
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.005399,
+      "average_traffic_block_size": 1449,
+      "local_blockchain_data_size": 10424,
+      "global_blockchain_data_sze": 1472,
+      "sending_traffic_logs_time": 0.001241
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.004239,
+      "average_traffic_block_size": 1542,
+      "local_blockchain_data_size": 13466,
+      "global_blockchain_data_sze": 1565,
+      "sending_traffic_logs_time": 0.002675
+    }
+  },
+  "nh7": {
+    "10": {
+      "calculating_average_traffic_time": 0.000813,
+      "average_traffic_block_size": 1527,
+      "local_blockchain_data_size": 2181,
+      "global_blockchain_data_sze": 1550,
+      "sending_traffic_logs_time": 0.000112
+    },
+    "10": {
+      "calculating_average_traffic_time": 0.000549,
+      "average_traffic_block_size": 1527,
+      "local_blockchain_data_size": 2178,
+      "global_blockchain_data_sze": 1550,
+      "sending_traffic_logs_time": 0.000104
+    },
+    "20": {
+      "calculating_average_traffic_time": 0.001026,
+      "average_traffic_block_size": 1533,
+      "local_blockchain_data_size": 2782,
+      "global_blockchain_data_sze": 1556,
+      "sending_traffic_logs_time": 0.00038
+    },
+    "30": {
+      "calculating_average_traffic_time": 0.001118,
+      "average_traffic_block_size": 1543,
+      "local_blockchain_data_size": 3381,
+      "global_blockchain_data_sze": 1566,
+      "sending_traffic_logs_time": 0.000266
+    },
+    "40": {
+      "calculating_average_traffic_time": 0.001758,
+      "average_traffic_block_size": 1564,
+      "local_blockchain_data_size": 3993,
+      "global_blockchain_data_sze": 1587,
+      "sending_traffic_logs_time": 0.000344
+    },
+    "60": {
+      "calculating_average_traffic_time": 0.001497,
+      "average_traffic_block_size": 1576,
+      "local_blockchain_data_size": 5197,
+      "global_blockchain_data_sze": 1599,
+      "sending_traffic_logs_time": 0.000879
+    },
+    "80": {
+      "calculating_average_traffic_time": 0.003579,
+      "average_traffic_block_size": 1619,
+      "local_blockchain_data_size": 6425,
+      "global_blockchain_data_sze": 1642,
+      "sending_traffic_logs_time": 0.00194
+    },
+    "100": {
+      "calculating_average_traffic_time": 0.004008,
+      "average_traffic_block_size": 1685,
+      "local_blockchain_data_size": 7669,
+      "global_blockchain_data_sze": 1708,
+      "sending_traffic_logs_time": 0.001337
+    },
+    "150": {
+      "calculating_average_traffic_time": 0.004734,
+      "average_traffic_block_size": 1725,
+      "local_blockchain_data_size": 10683,
+      "global_blockchain_data_sze": 1748,
+      "sending_traffic_logs_time": 0.001654
+    },
+    "200": {
+      "calculating_average_traffic_time": 0.005581,
+      "average_traffic_block_size": 1790,
+      "local_blockchain_data_size": 13698,
+      "global_blockchain_data_sze": 1813,
+      "sending_traffic_logs_time": 0.002459
+    }
+  }
+}

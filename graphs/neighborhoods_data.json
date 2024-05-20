@@ -1,0 +1,30 @@
+{
+  "nh1": {
+    "vertex_count": 10,
+    "edge_count": 20
+  },
+  "nh2": {
+    "vertex_count": 10,
+    "edge_count": 30
+  },
+  "nh3": {
+    "vertex_count": 20,
+    "edge_count": 30
+  },
+  "nh4": {
+    "vertex_count": 30,
+    "edge_count": 40
+  },
+  "nh5": {
+    "vertex_count": 30,
+    "edge_count": 50
+  },
+  "nh6": {
+    "vertex_count": 40,
+    "edge_count": 65
+  },
+  "nh7": {
+    "vertex_count": 40,
+    "edge_count": 80
+  }
+}

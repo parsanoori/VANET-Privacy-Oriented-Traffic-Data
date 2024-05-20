@@ -1,1 +1,0 @@
-traffic_update_interval_in_seconds = 10
