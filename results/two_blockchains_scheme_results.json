@@ -62,6 +62,20 @@
       "local_blockchain_data_size": 12206,
       "global_blockchain_data_sze": 584,
       "sending_traffic_logs_time": 0.002341
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000195,
+      "average_traffic_block_size": 389,
+      "local_blockchain_data_size": 507,
+      "global_blockchain_data_sze": 412,
+      "sending_traffic_logs_time": 1.6e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.000161,
+      "average_traffic_block_size": 393,
+      "local_blockchain_data_size": 743,
+      "global_blockchain_data_sze": 416,
+      "sending_traffic_logs_time": 0.000151
     }
   },
   "nh2": {
@@ -127,6 +141,20 @@
       "local_blockchain_data_size": 12406,
       "global_blockchain_data_sze": 777,
       "sending_traffic_logs_time": 0.000905
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000179,
+      "average_traffic_block_size": 559,
+      "local_blockchain_data_size": 677,
+      "global_blockchain_data_sze": 582,
+      "sending_traffic_logs_time": 3.2e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.000245,
+      "average_traffic_block_size": 562,
+      "local_blockchain_data_size": 911,
+      "global_blockchain_data_sze": 585,
+      "sending_traffic_logs_time": 9.3e-05
     }
   },
   "nh3": {
@@ -192,6 +220,20 @@
       "local_blockchain_data_size": 12631,
       "global_blockchain_data_sze": 797,
       "sending_traffic_logs_time": 0.001572
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000279,
+      "average_traffic_block_size": 592,
+      "local_blockchain_data_size": 712,
+      "global_blockchain_data_sze": 615,
+      "sending_traffic_logs_time": 3.7e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.000192,
+      "average_traffic_block_size": 595,
+      "local_blockchain_data_size": 949,
+      "global_blockchain_data_sze": 618,
+      "sending_traffic_logs_time": 0.000111
     }
   },
   "nh4": {
@@ -257,6 +299,20 @@
       "local_blockchain_data_size": 12958,
       "global_blockchain_data_sze": 1060,
       "sending_traffic_logs_time": 0.001015
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000274,
+      "average_traffic_block_size": 786,
+      "local_blockchain_data_size": 905,
+      "global_blockchain_data_sze": 809,
+      "sending_traffic_logs_time": 6.6e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.000364,
+      "average_traffic_block_size": 790,
+      "local_blockchain_data_size": 1147,
+      "global_blockchain_data_sze": 813,
+      "sending_traffic_logs_time": 0.000102
     }
   },
   "nh5": {
@@ -322,6 +378,20 @@
       "local_blockchain_data_size": 13110,
       "global_blockchain_data_sze": 1233,
       "sending_traffic_logs_time": 0.001151
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000608,
+      "average_traffic_block_size": 962,
+      "local_blockchain_data_size": 1082,
+      "global_blockchain_data_sze": 985,
+      "sending_traffic_logs_time": 3.4e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.00054,
+      "average_traffic_block_size": 966,
+      "local_blockchain_data_size": 1322,
+      "global_blockchain_data_sze": 989,
+      "sending_traffic_logs_time": 0.000244
     }
   },
   "nh6": {
@@ -387,6 +457,20 @@
       "local_blockchain_data_size": 13463,
       "global_blockchain_data_sze": 1547,
       "sending_traffic_logs_time": 0.001552
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000211,
+      "average_traffic_block_size": 1252,
+      "local_blockchain_data_size": 1372,
+      "global_blockchain_data_sze": 1275,
+      "sending_traffic_logs_time": 9.7e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.000689,
+      "average_traffic_block_size": 1254,
+      "local_blockchain_data_size": 1610,
+      "global_blockchain_data_sze": 1277,
+      "sending_traffic_logs_time": 8.8e-05
     }
   },
   "nh7": {
@@ -452,6 +536,20 @@
       "local_blockchain_data_size": 13720,
       "global_blockchain_data_sze": 1825,
       "sending_traffic_logs_time": 0.000862
+    },
+    "1": {
+      "calculating_average_traffic_time": 0.000289,
+      "average_traffic_block_size": 1520,
+      "local_blockchain_data_size": 1640,
+      "global_blockchain_data_sze": 1543,
+      "sending_traffic_logs_time": 8.4e-05
+    },
+    "5": {
+      "calculating_average_traffic_time": 0.000333,
+      "average_traffic_block_size": 1523,
+      "local_blockchain_data_size": 1879,
+      "global_blockchain_data_sze": 1546,
+      "sending_traffic_logs_time": 0.000173
     }
   }
 }

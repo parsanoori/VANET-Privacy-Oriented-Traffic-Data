@@ -89,6 +89,26 @@
       "calculating_encrypted_average_time": 24.187233,
       "calculating_decryption_time": 2.63141,
       "sending_traffic_logs_time": 79.004345
+    },
+    "1": {
+      "global_blockchain_size": 81119,
+      "local_blockchain_size": 81417,
+      "traffic_log_size": 177,
+      "traffic_block_size": 38470,
+      "calculating_traffic_log_encryption_time": 0.64707,
+      "calculating_encrypted_average_time": 31.030622,
+      "calculating_decryption_time": 2.814918,
+      "sending_traffic_logs_time": 0.647219
+    },
+    "5": {
+      "global_blockchain_size": 81162,
+      "local_blockchain_size": 82170,
+      "traffic_log_size": 177,
+      "traffic_block_size": 38477,
+      "calculating_traffic_log_encryption_time": 0.511765,
+      "calculating_encrypted_average_time": 30.599566,
+      "calculating_decryption_time": 3.807207,
+      "sending_traffic_logs_time": 2.577883
     }
   },
   "nh2": {
@@ -181,6 +201,26 @@
       "calculating_encrypted_average_time": 35.509675,
       "calculating_decryption_time": 4.437449,
       "sending_traffic_logs_time": 78.894631
+    },
+    "1": {
+      "global_blockchain_size": 120989,
+      "local_blockchain_size": 121289,
+      "traffic_log_size": 177,
+      "traffic_block_size": 57654,
+      "calculating_traffic_log_encryption_time": 0.542168,
+      "calculating_encrypted_average_time": 46.657969,
+      "calculating_decryption_time": 5.7771,
+      "sending_traffic_logs_time": 0.542591
+    },
+    "5": {
+      "global_blockchain_size": 120993,
+      "local_blockchain_size": 122001,
+      "traffic_log_size": 177,
+      "traffic_block_size": 57656,
+      "calculating_traffic_log_encryption_time": 0.509532,
+      "calculating_encrypted_average_time": 46.0331,
+      "calculating_decryption_time": 4.711046,
+      "sending_traffic_logs_time": 2.565834
     }
   },
   "nh3": {
@@ -273,6 +313,26 @@
       "calculating_encrypted_average_time": 35.508211,
       "calculating_decryption_time": 4.463911,
       "sending_traffic_logs_time": 78.859343
+    },
+    "1": {
+      "global_blockchain_size": 120996,
+      "local_blockchain_size": 121296,
+      "traffic_log_size": 177,
+      "traffic_block_size": 57656,
+      "calculating_traffic_log_encryption_time": 0.526265,
+      "calculating_encrypted_average_time": 35.689375,
+      "calculating_decryption_time": 4.492978,
+      "sending_traffic_logs_time": 0.526664
+    },
+    "5": {
+      "global_blockchain_size": 121027,
+      "local_blockchain_size": 122035,
+      "traffic_log_size": 177,
+      "traffic_block_size": 57672,
+      "calculating_traffic_log_encryption_time": 0.389514,
+      "calculating_encrypted_average_time": 36.07396,
+      "calculating_decryption_time": 3.335287,
+      "sending_traffic_logs_time": 1.977499
     }
   },
   "nh4": {
@@ -365,6 +425,26 @@
       "calculating_encrypted_average_time": 47.391901,
       "calculating_decryption_time": 5.866403,
       "sending_traffic_logs_time": 79.191837
+    },
+    "1": {
+      "global_blockchain_size": 160879,
+      "local_blockchain_size": 161179,
+      "traffic_log_size": 177,
+      "traffic_block_size": 76857,
+      "calculating_traffic_log_encryption_time": 0.431708,
+      "calculating_encrypted_average_time": 48.228564,
+      "calculating_decryption_time": 5.466155,
+      "sending_traffic_logs_time": 0.43188
+    },
+    "5": {
+      "global_blockchain_size": 160869,
+      "local_blockchain_size": 161877,
+      "traffic_log_size": 177,
+      "traffic_block_size": 76852,
+      "calculating_traffic_log_encryption_time": 0.389273,
+      "calculating_encrypted_average_time": 47.484619,
+      "calculating_decryption_time": 5.441808,
+      "sending_traffic_logs_time": 2.002322
     }
   },
   "nh5": {
@@ -457,6 +537,26 @@
       "calculating_encrypted_average_time": 58.752327,
       "calculating_decryption_time": 8.876249,
       "sending_traffic_logs_time": 77.868641
+    },
+    "1": {
+      "global_blockchain_size": 200746,
+      "local_blockchain_size": 201046,
+      "traffic_log_size": 177,
+      "traffic_block_size": 96053,
+      "calculating_traffic_log_encryption_time": 0.434813,
+      "calculating_encrypted_average_time": 60.325161,
+      "calculating_decryption_time": 7.934915,
+      "sending_traffic_logs_time": 0.435114
+    },
+    "5": {
+      "global_blockchain_size": 200656,
+      "local_blockchain_size": 201663,
+      "traffic_log_size": 177,
+      "traffic_block_size": 96033,
+      "calculating_traffic_log_encryption_time": 0.402329,
+      "calculating_encrypted_average_time": 60.425903,
+      "calculating_decryption_time": 7.779792,
+      "sending_traffic_logs_time": 2.099274
     }
   },
   "nh6": {
@@ -549,6 +649,26 @@
       "calculating_encrypted_average_time": 77.368314,
       "calculating_decryption_time": 9.304766,
       "sending_traffic_logs_time": 78.59939
+    },
+    "1": {
+      "global_blockchain_size": 260508,
+      "local_blockchain_size": 260807,
+      "traffic_log_size": 177,
+      "traffic_block_size": 124819,
+      "calculating_traffic_log_encryption_time": 0.431366,
+      "calculating_encrypted_average_time": 80.33616,
+      "calculating_decryption_time": 10.794786,
+      "sending_traffic_logs_time": 0.431631
+    },
+    "5": {
+      "global_blockchain_size": 260573,
+      "local_blockchain_size": 261581,
+      "traffic_log_size": 177,
+      "traffic_block_size": 124855,
+      "calculating_traffic_log_encryption_time": 0.392248,
+      "calculating_encrypted_average_time": 76.818931,
+      "calculating_decryption_time": 8.111197,
+      "sending_traffic_logs_time": 2.001109
     }
   },
   "nh7": {
@@ -641,6 +761,26 @@
       "calculating_encrypted_average_time": 94.66059,
       "calculating_decryption_time": 11.751223,
       "sending_traffic_logs_time": 78.262316
+    },
+    "1": {
+      "global_blockchain_size": 320270,
+      "local_blockchain_size": 332542,
+      "traffic_log_size": 177,
+      "traffic_block_size": 153591,
+      "calculating_traffic_log_encryption_time": 0.429261,
+      "calculating_encrypted_average_time": 96.227217,
+      "calculating_decryption_time": 13.529983,
+      "sending_traffic_logs_time": 0.429519
+    },
+    "5": {
+      "global_blockchain_size": 320383,
+      "local_blockchain_size": 321390,
+      "traffic_log_size": 177,
+      "traffic_block_size": 153653,
+      "calculating_traffic_log_encryption_time": 0.389506,
+      "calculating_encrypted_average_time": 94.495062,
+      "calculating_decryption_time": 13.665598,
+      "sending_traffic_logs_time": 1.991307
     }
   }
 }
