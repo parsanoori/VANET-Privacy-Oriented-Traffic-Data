@@ -423,7 +423,8 @@ class LocalBlockchainNode(BlockchainNode):
                 return False
 
         self.blockchain.add_block({
-            "type": "approved"
+            "type": "approved",
+            "traffic": raw_decrypted_traffic
         })
         self.raw_decrypted_traffic = raw_decrypted_traffic
         return raw_decrypted_traffic
