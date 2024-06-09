@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 from Blockchain.Blockchain import Blockchain
 from Blockchain.BlockchainNode import BlockchainNode
 from phe import paillier
@@ -84,10 +84,13 @@ class GlobalBlockchainNode(BlockchainNode):
             return True
         return False
 
-    def get_decryption(self, average_encrypted: Dict[str, int]) -> Dict[str, int]:
+    def get_decryption(self, average_encrypted: Dict[str, Tuple[int, int]]) -> Dict[str, int]:
         average_traffic = {}
         for key, value in average_encrypted.items():
-            average_traffic[key] = self.key_pair[1].raw_decrypt(value)
+            ciphertext, exponent = value
+            public_key = self.key_pair[0]
+            encrypted_speed = paillier.EncryptedNumber(public_key, ciphertext, exponent)
+            average_traffic[key] = self.key_pair[1].decrypt(encrypted_speed)
         return average_traffic
 
     def calculate_average_traffic_decryption(self, first: bool):

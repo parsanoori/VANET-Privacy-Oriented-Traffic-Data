@@ -271,10 +271,13 @@ class LocalBlockchainNode(BlockchainNode):
             raise IncorrectStateForAction(self.state, "send_encrypted_traffic_log")
         edge_hash = self.street_graph_edges_backward[edge]
         start = datetime.datetime.now()
+        encrypted_speed = self.facilitator_pubkey.encrypt(speed)
+        ciphertext = encrypted_speed.ciphertext()
+        exponent = encrypted_speed.exponent
         traffic_speed_block = {
             "type": "encrypted_traffic_log",
             "edge_hash": edge_hash,
-            "speed": self.facilitator_pubkey.encrypt(speed)
+            "speed": (ciphertext, exponent)
         }
         end = datetime.datetime.now()
         self.calculating_traffic_log_encryption_time = end - start
@@ -287,29 +290,32 @@ class LocalBlockchainNode(BlockchainNode):
         self.slope = random.randint(1, 100)
         self.bias = random.randint(1, 100)
 
-    def _get_edge_average_speed(self, edge) -> int:
+    def _get_edge_average_speed(self, edge) -> paillier.EncryptedNumber:
         edge_hash = self.street_graph_edges_backward[edge]
         block = self.blockchain.tail
         speeds = self.facilitator_pubkey.encrypt(0)
         count = 0
         while block is not None and block.timestamp > self.facilitator_response_time:
             if block.data["type"] == "traffic_speed" and block.data["edge_hash"] == edge_hash:
-                speeds += block.data["speed"]
+                ciphertext, exponent = block.data["speed"]
+                speed = paillier.EncryptedNumber(self.facilitator_pubkey, ciphertext, exponent)
+                speeds += speed
                 count += 1
             block = block.previous_block
         if count == 0:
-            hundred = self.facilitator_pubkey.encrypt(100)
-            to_send = hundred * self.slope + self.bias
-            return to_send.ciphertext()
+            raw_average = self.facilitator_pubkey.encrypt(100)
         else:
             raw_average = speeds / count
-            f_average_edge_speed = raw_average * self.slope + self.bias
-            return f_average_edge_speed.ciphertext()
+        f_average_edge_speed = raw_average * self.slope + self.bias
+        return f_average_edge_speed
 
     def _calculate_neighborhood_encrypted_average_traffic(self):
         traffic = {}
         for edge in tqdm(self.street_graph.edges):
-            traffic[calc_edge_hash(edge)] = self._get_edge_average_speed(edge)
+            edge_average_speed = self._get_edge_average_speed(edge)
+            ciphertext = edge_average_speed.ciphertext()
+            exponent = edge_average_speed.exponent
+            traffic[calc_edge_hash(edge)] = (ciphertext, exponent)
         return traffic
 
     def add_traffic_to_chains(self):
