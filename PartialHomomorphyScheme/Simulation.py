@@ -47,7 +47,8 @@ class Simulation:
 
     def send_random_traffic_log(self):
         # select a random edge
-        edge = random.choice(list(self.edges))
+        #edge = random.choice(list(self.edges))
+        edge = self.edges[0]
         # select a random speed
         speed = random.randint(0, 100)
         self.localBlockChainNode.send_encrypted_traffic_log(edge, speed)
@@ -157,6 +158,7 @@ class Simulation:
         if not self.quiet:
             print(f'Approving the decryption {inspect.currentframe().f_lineno}')
         self.bridgeLocalToGlobal.approve_results()
+        self.bridgeLocalToGlobal.forward_raw_traffic(self.localBlockChain.tail.data)
 
     def run(self):
         self.runServers()

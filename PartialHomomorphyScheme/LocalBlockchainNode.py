@@ -194,6 +194,12 @@ class LocalBlockchainNode(BlockchainNode):
             self.state = NeighborHoodState.FACILITATOR_REQUEST_NOT_SENT
         self.state_lock.release()
 
+    def forward_raw_traffic(self, data):
+        if self.global_node is None:
+            raise IsNotGlobalNodeError
+        data["neighborhood"] = self.neighborhood
+        self.global_blockchain.add_block(data)
+
     def forward_global_block(self, block):
         if self.global_node is None:
             raise IsNotGlobalNodeError
@@ -296,7 +302,7 @@ class LocalBlockchainNode(BlockchainNode):
         speeds = self.facilitator_pubkey.encrypt(0)
         count = 0
         while block is not None and block.timestamp > self.facilitator_response_time:
-            if block.data["type"] == "traffic_speed" and block.data["edge_hash"] == edge_hash:
+            if block.data["type"] == "encrypted_traffic_log" and block.data["edge_hash"] == edge_hash:
                 ciphertext, exponent = block.data["speed"]
                 speed = paillier.EncryptedNumber(self.facilitator_pubkey, ciphertext, exponent)
                 speeds += speed

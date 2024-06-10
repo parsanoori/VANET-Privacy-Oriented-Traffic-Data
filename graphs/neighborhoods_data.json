@@ -1,4 +1,8 @@
 {
+  "nh0": {
+    "vertex_count": 2,
+    "edge_count": 1
+  },
   "nh1": {
     "vertex_count": 10,
     "edge_count": 20
