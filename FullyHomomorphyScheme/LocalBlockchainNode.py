@@ -1,8 +1,7 @@
 from tqdm import tqdm
 from Blockchain import Blockchain, LocalBlockchain
 import networkx.readwrite.gml as gml
-from typing import Dict
-from typing import Optional
+from typing import Dict, Tuple, Optional
 from utils import calc_edge_hash, b64_enc
 import datetime
 from Blockchain.BlockchainNode import BlockchainNode
@@ -84,8 +83,8 @@ class LocalBlockchainNode(BlockchainNode):
         self.max_cars: int = 100
         self.bias: int = 0
         self.error: int = 0
-        self.f_a_encrypted_data: Dict[str, int] = {}
-        self.f_b_encrypted_data: Dict[str, int] = {}
+        self.f_a: Dict[str, Tuple[int,int]] = {}
+        self.f_b: Dict[str, Tuple[int,int]] = {}
         self.speeds_count_per_street: Dict = {}
         self.raw_decrypted_traffic: Dict[str, int] = {}
         self.quiet = quiet
@@ -139,15 +138,15 @@ class LocalBlockchainNode(BlockchainNode):
                 if self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
                     if not self.quiet:
                         print(
-                            f"Local node {self.node_id}: Traffic update interval reached. Now first node should send encrypted average traffic.")
+                            f"Local node {self.node_id}: Traffic update interval reached. Now first node should send encrypted traffic data.")
                 self.state = NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED
-        elif block_type == "f_a_encrypted_average_traffic":
+        elif block_type == "f_a_encrypted_data":
             if self.state == NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED:
                 if not self.quiet:
                     print(
-                        f"Local node {self.node_id}: First Node Aggregated Data Received. Now second node Parameters should be sent.")
+                        f"Local node {self.node_id}: First Node Aggregated Data Received. Now first node shoud send encrypted traffic data.")
             self.state = NeighborHoodState.FIRST_NODE_AGGREGATED_DATA
-        elif block_type == "f_c_encrypted_average_traffic":
+        elif block_type == "f_b_encrypted_data":
             if self.state == NeighborHoodState.FIRST_NODE_AGGREGATED_DATA:
                 if not self.quiet:
                     print(
@@ -163,7 +162,7 @@ class LocalBlockchainNode(BlockchainNode):
                         f'Local node {self.node_id}: First Node Parameters Received. a: {self.a}. Now the second parameters should be sent')
                 self.state = NeighborHoodState.FIRST_NODE_PARAMETERS_SENT
         elif block_type == "second_node_parameters":
-            self.b = int(block.data["c"])
+            self.b = int(block.data["b"])
             if self.b == 0:
                 raise ValueError("b is 0")
             if self.state == NeighborHoodState.FIRST_NODE_PARAMETERS_SENT:
@@ -176,10 +175,10 @@ class LocalBlockchainNode(BlockchainNode):
                 if not self.quiet:
                     print(f"Local node {self.node_id}: Decryption request received. Now the decryption should be sent.")
             self.state = NeighborHoodState.DECRYPTION_REQUEST_SENT
-        elif block_type == "decrypted_average_traffic":
+        elif block_type == "decrypted_data":
             if self.state == NeighborHoodState.DECRYPTION_REQUEST_SENT:
                 if not self.quiet:
-                    print(f"Local node {self.node_id}: Decrypted average traffic received.")
+                    print(f"Local node {self.node_id}: Decrypted traffic data received.")
             self.state = NeighborHoodState.DECRYPTION_RESULT_RECEIVED
             self.save_average_traffic(block)
         elif block_type == "approved" or block_type == "disapproved":
@@ -211,7 +210,7 @@ class LocalBlockchainNode(BlockchainNode):
         state = self.state
         if state == NeighborHoodState.FACILITATOR_REQUEST_SENT and global_block_type == "facilitator_accepted_request":
             self.forward_global_block(block.data)
-        elif state == NeighborHoodState.DECRYPTION_REQUEST_SENT and global_block_type == "decrypted_average_traffic":
+        elif state == NeighborHoodState.DECRYPTION_REQUEST_SENT and global_block_type == "decrypted_data":
             self.forward_global_block(block.data)
         else:
             return
@@ -333,7 +332,7 @@ class LocalBlockchainNode(BlockchainNode):
         end = datetime.datetime.now()
         self.calculating_encrypted_average_time = end - start
         if not self.quiet:
-            print(f"Local node {self.node_id}: Calculated encrypted average traffic in {end - start} seconds")
+            print(f"Local node {self.node_id}: Calculated encrypted traffic data in {end - start} seconds")
         traffic_block = {
             "type": "f_a_encrypted_data" if self.first_node else "f_b_encrypted_data",
             "traffic": traffic
@@ -391,25 +390,30 @@ class LocalBlockchainNode(BlockchainNode):
             raise IncorrectStateForAction(self.state, "approve_results")
 
         raw_decrypted_traffic = {}
-        for key, value in tqdm(self.f_a_encrypted_data.items()):
-            if key not in self.f_b_encrypted_data:
+        for key, value in tqdm(self.f_a.items()):
+            speed, speed_sq = value
+            if key not in self.f_b:
                 if not self.quiet:
-                    print(f'key {key} not in f_cd_average_traffic')
+                    print(f'key {key} not in f_b_encrypted_data')
                 self.blockchain.add_block({
                     "type": "disapproved"
                 })
                 return False
-            raw_node_one = value - self.a
-            node_two_value = self.f_a_encrypted_data[key]
-            raw_node_two = node_two_value - self.a
-            if raw_node_one != raw_node_two:
+            # for speed
+            speed, speed_sq = speed - self.a, speed_sq - self.a
+            speed2, speed_sq2 = self.f_b[key]
+            speed2, speed_sq2 = speed2 - self.b, speed_sq2 - self.b
+            if speed != speed2 or speed_sq != speed_sq2:
                 if not self.quiet:
-                    print(f'raw_node_one {raw_node_one} != raw_node_two {raw_node_two}')
+                    print(f'data from node one and two do not match')
                 self.blockchain.add_block({
                     "type": "disapproved"
                 })
                 return False
-            raw_decrypted_traffic[key] = raw_node_one
+            n = self.speeds_count_per_street[key]
+            average = speed / n
+            sigma2 = speed_sq - speed * speed / n
+            raw_decrypted_traffic[key] = int(speed / n), float()
 
         for key, value in tqdm(self.f_b_encrypted_data.items()):
             if key not in self.f_a_encrypted_data:
@@ -434,6 +438,8 @@ class LocalBlockchainNode(BlockchainNode):
 
     def save_average_traffic(self, block):
         for key, value in block.data["f_a_decrypted_average_traffic"].items():
-            self.f_a_encrypted_data[key] = int(value)
+            speed, speed_sq = value
+            self.f_a[key] = int(speed), int(speed_sq)
         for key, value in block.data["f_b_decrypted_average_traffic"].items():
-            self.f_b_encrypted_data[key] = int(value)
+            speed, speed_sq = value
+            self.f_b[key] = speed, speed_sq
