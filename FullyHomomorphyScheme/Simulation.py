@@ -3,28 +3,30 @@ import random
 from time import sleep
 from Blockchain import Blockchain
 from Blockchain.LocalBlockchain import LocalBlockchain
-from PartialHomomorphyScheme.GlobalBlockchainNode import GlobalBlockchainNode, GlobalBlockchainNodeState
-from PartialHomomorphyScheme.LocalBlockchainNode import LocalBlockchainNode, NeighborHoodState
+from FullyHomomorphyScheme.GlobalBlockchainNode import GlobalBlockchainNode, GlobalNodeState
+from FullyHomomorphyScheme.LocalBlockchainNode import LocalBlockchainNode, NeighborHoodState
 import inspect
 
 
 class Simulation:
-    def __init__(self, map_name: str, quiet: bool, random_speed_log_count: int = 100, sleep_time: float = 0.2,
-                 traffic_update_interval_in_seconds: int = 10):
+    def __init__(self, map_name: str, quiet: bool, random_speed_log_count: int = 1, sleep_time: float = 0.2,
+                 update_interval: int = 10, poly_modulus_degree=4096):
+        plain_modulus = 1032193
         self.localBlockChain = LocalBlockchain(map_name)
         self.globalBlockChain = Blockchain.Blockchain()
         self.facilitator = GlobalBlockchainNode(self.globalBlockChain, sleep_time=sleep_time, quiet=quiet,
-                                                traffic_update_interval_in_seconds=traffic_update_interval_in_seconds)
+                                                update_interval=update_interval,
+                                                poly_modulus_degree=poly_modulus_degree, plain_modulus=plain_modulus)
         self.localBlockChainNode = LocalBlockchainNode(self.localBlockChain, sleep_time=sleep_time,
-                                                       traffic_update_interval_in_seconds=traffic_update_interval_in_seconds,
+                                                       update_interval=update_interval,
                                                        quiet=quiet)  # local node 0
         self.bridgeLocalToGlobal = LocalBlockchainNode(self.localBlockChain, self.globalBlockChain,
-                                                       traffic_update_interval_in_seconds=traffic_update_interval_in_seconds,
+                                                       update_interval=update_interval,
                                                        quiet=quiet, sleep_time=sleep_time)  # local node 1
         self.secondBridgeLocalToGlobal = LocalBlockchainNode(self.localBlockChain,
                                                              self.globalBlockChain,
                                                              sleep_time=sleep_time,
-                                                             traffic_update_interval_in_seconds=traffic_update_interval_in_seconds,
+                                                             update_interval=update_interval,
                                                              quiet=quiet)  # local node 2
         self.neighborhood_map = self.localBlockChainNode.street_graph
         self.edges = list(self.neighborhood_map.edges)
@@ -47,11 +49,11 @@ class Simulation:
 
     def send_random_traffic_log(self):
         # select a random edge
-        #edge = random.choice(list(self.edges))
+        # edge = random.choice(list(self.edges))
         edge = self.edges[0]
         # select a random speed
-        speed = random.randint(0, 100)
-        self.localBlockChainNode.send_encrypted_traffic_log(edge, speed)
+        speed = random.randint(1, 100)
+        self.localBlockChainNode.send_encrypted_log(edge, speed)
         if not self.quiet:
             print(f"Sent traffic log for edge {edge} with speed {speed}")
 
@@ -62,7 +64,7 @@ class Simulation:
         if not self.quiet:
             print("Requesting to be a facilitator")
         self.bridgeLocalToGlobal.request_facilitating()
-        while self.facilitator.get_node_state() != GlobalBlockchainNodeState.WAITING_FOR_FIRST_ENCRYPTED_AVERAGE_TRAFFIC:
+        while self.facilitator.get_node_state() != GlobalNodeState.WAITING_FOR_FIRST_ENCRYPTED_AVERAGE_TRAFFIC:
             sleep(self.time_unit)
         if not self.quiet:
             print(f'facilitator: {self.facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
@@ -134,7 +136,7 @@ class Simulation:
         self.bridgeLocalToGlobal.send_decryption_request()
 
         # wait for the facilitator to send the decrypted average traffic
-        while self.facilitator.get_node_state() != GlobalBlockchainNodeState.IDLE:
+        while self.facilitator.get_node_state() != GlobalNodeState.IDLE:
             sleep(self.time_unit)
         if not self.quiet:
             print(f'facilitator {self.facilitator.get_node_state()} {inspect.currentframe().f_lineno}')
@@ -171,11 +173,11 @@ class Simulation:
     def get_simulation_data(self):
         global_blockchain_size = self.facilitator.blockchain.get_data_size()
         local_blockchain_size = self.bridgeLocalToGlobal.blockchain.get_data_size()
-        traffic_log_size = self.localBlockChainNode.traffic_log_size
+        traffic_log_size = self.localBlockChainNode.log_size
         traffic_block_size = self.bridgeLocalToGlobal.encrypted_traffic_block_size
         calculating_traffic_log_encryption_time = (
-            self.localBlockChainNode.calculating_traffic_log_encryption_time.total_seconds())
-        calculating_encrypted_average_time = self.bridgeLocalToGlobal.calculating_encrypted_average_time.total_seconds()
+            self.localBlockChainNode.log_encryption_time.total_seconds())
+        aggregation_time = self.bridgeLocalToGlobal.aggregation_time.total_seconds()
         calculating_decryption_time = self.facilitator.first_decryption_time.total_seconds()
         data = {
             "global_blockchain_size": global_blockchain_size,
@@ -183,7 +185,7 @@ class Simulation:
             "traffic_log_size": traffic_log_size,
             "traffic_block_size": traffic_block_size,
             "calculating_traffic_log_encryption_time": calculating_traffic_log_encryption_time,
-            "calculating_encrypted_average_time": calculating_encrypted_average_time,
+            "aggregation_time": aggregation_time,
             "calculating_decryption_time": calculating_decryption_time,
             "sending_traffic_logs_time": self.sending_traffic_logs_time.total_seconds()
         }

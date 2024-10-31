@@ -2,7 +2,7 @@ from tqdm import tqdm
 from Blockchain import Blockchain, LocalBlockchain
 import networkx.readwrite.gml as gml
 from typing import Dict, Tuple, Optional
-from utils import calc_edge_hash, b64_enc
+from utils import calc_edge_hash, b64_enc, b64_dec
 import datetime
 from Blockchain.BlockchainNode import BlockchainNode
 from PartialHomomorphyScheme.GlobalBlockchainNode import GlobalBlockchainNode
@@ -55,7 +55,7 @@ class IncorrectStateForAction(Exception):
 
 class LocalBlockchainNode(BlockchainNode):
     def __init__(self, local_blockchain: LocalBlockchain, global_blockchain: Optional[Blockchain] = None,
-                 sleep_time: float = 0.2, traffic_update_interval_in_seconds: int = 10, quiet=False, bias=10_000):
+                 sleep_time: float = 0.2, update_interval: int = 10, quiet=False):
         # local blockchain node is primarily a local blockchain node, but it can also be a global blockchain node too
         neighborhood = local_blockchain.neighborhood
         BlockchainNode.__init__(self, local_blockchain)
@@ -71,9 +71,9 @@ class LocalBlockchainNode(BlockchainNode):
         self.last_state_update: datetime.datetime = datetime.datetime.now()
         self.facilitator_ctx: ts.Context = None
         self.facilitator_response_time = None
-        self.neighborhood_encrypted_traffic = None
+        self.encrypted_data = None
         self.state_thread = threading.Thread(target=self.update_state_periodically)
-        self.forward_related_blocks_thread = threading.Thread(target=self.forward_related_blocks_periodically)
+        self.forwarding_thread = threading.Thread(target=self.forward_related_blocks_periodically)
         self.system_running = True
         self.debug = False
         self.a: int = 0
@@ -81,25 +81,24 @@ class LocalBlockchainNode(BlockchainNode):
         self.first_node: bool = False
         self.max_speed: int = 100
         self.max_cars: int = 100
-        self.bias: int = 0
         self.error: int = 0
-        self.f_a: Dict[str, Tuple[int,int]] = {}
-        self.f_b: Dict[str, Tuple[int,int]] = {}
+        self.f_a: Dict[str, Tuple[int, int]] = {}
+        self.f_b: Dict[str, Tuple[int, int]] = {}
         self.speeds_count_per_street: Dict = {}
-        self.raw_decrypted_traffic: Dict[str, int] = {}
+        self.decrypted_traffic: Dict[str, Tuple[int, int]] = {}
         self.quiet = quiet
         self.encrypted_traffic_block_size: int = 0
-        self.traffic_log_size: int = 0
-        self.calculating_traffic_log_encryption_time = None
-        self.calculating_encrypted_average_time = None
+        self.log_size: int = 0
+        self.log_encryption_time = None
+        self.aggregation_time = None
         self.sleep_time = sleep_time
-        self.traffic_update_interval_in_seconds = traffic_update_interval_in_seconds
+        self.update_interval = update_interval  # in seconds
 
     def run_threaded(self):
         if self.global_node is not None:
-            self.forward_related_blocks_thread.start()
+            self.forwarding_thread.start()
             self.state_thread.start()
-            return [self.state_thread, self.forward_related_blocks_thread]
+            return [self.state_thread, self.forwarding_thread]
         else:
             self.state_thread.start()
             return self.state_thread
@@ -134,19 +133,19 @@ class LocalBlockchainNode(BlockchainNode):
             self.update_facilitator_data(block)
         elif self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
             if self.facilitator_response_time + datetime.timedelta(
-                    seconds=self.traffic_update_interval_in_seconds) < datetime.datetime.now():
+                    seconds=self.update_interval) < datetime.datetime.now():
                 if self.state == NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
                     if not self.quiet:
                         print(
                             f"Local node {self.node_id}: Traffic update interval reached. Now first node should send encrypted traffic data.")
                 self.state = NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED
-        elif block_type == "f_a_encrypted_data":
+        elif block_type == "f_a_encrypted":
             if self.state == NeighborHoodState.ENC_AVERAGE_TRAFFIC_CALCULATION_TIME_REACHED:
                 if not self.quiet:
                     print(
                         f"Local node {self.node_id}: First Node Aggregated Data Received. Now first node shoud send encrypted traffic data.")
             self.state = NeighborHoodState.FIRST_NODE_AGGREGATED_DATA
-        elif block_type == "f_b_encrypted_data":
+        elif block_type == "f_b_encrypted":
             if self.state == NeighborHoodState.FIRST_NODE_AGGREGATED_DATA:
                 if not self.quiet:
                     print(
@@ -180,7 +179,7 @@ class LocalBlockchainNode(BlockchainNode):
                 if not self.quiet:
                     print(f"Local node {self.node_id}: Decrypted traffic data received.")
             self.state = NeighborHoodState.DECRYPTION_RESULT_RECEIVED
-            self.save_average_traffic(block)
+            self.save_traffic(block)
         elif block_type == "approved" or block_type == "disapproved":
             if self.state == NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
                 if not self.quiet:
@@ -265,53 +264,54 @@ class LocalBlockchainNode(BlockchainNode):
     # step 2 is handled by the facilitator
 
     # step 3
-    def send_encrypted_traffic_log(self, edge, speed):
+    def send_encrypted_log(self, edge, speed):
         self.update_state()
         if self.state != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
             raise IncorrectStateForAction(self.state, "send_encrypted_traffic_log")
         edge_hash = self.street_graph_edges_backward[edge]
         start = datetime.datetime.now()
-        ciphertext = b64_enc(ts.bfv_vector(self.facilitator_ctx, [speed]))
+        ciphertext = b64_enc(ts.bfv_vector(self.facilitator_ctx, [speed]).serialize())
         traffic_speed_block = {
-            "type": "encrypted_traffic_log",
+            "type": "encrypted_log",
             "edge_hash": edge_hash,
             "speed": ciphertext
         }
         end = datetime.datetime.now()
-        self.calculating_traffic_log_encryption_time = end - start
+        self.log_encryption_time = end - start
         self.blockchain.add_block(traffic_speed_block)
-        self.traffic_log_size = len(str(traffic_speed_block))
+        self.log_size = len(str(traffic_speed_block))
         return traffic_speed_block
 
     # ================== step 4&5 ==================
     def generate_parameters(self):
         self.error = random.randint(-10_000, 10_000)
 
-    def _get_edge_average_speed(self, edge):
+    def _get_edge_data(self, edge):
         edge_hash = self.street_graph_edges_backward[edge]
         block = self.blockchain.tail
-        speeds = ts.bfv_vector([self.bias], self.facilitator_ctx)
-        sqspeeds = ts.bfv_vector([self.bias], self.facilitator_ctx)
+        speeds = ts.bfv_vector(self.facilitator_ctx, [self.error])
+        sqspeeds = ts.bfv_vector(self.facilitator_ctx, [self.error])
         count = 0
         while block is not None and block.timestamp > self.facilitator_response_time:
-            if block.data["type"] == "encrypted_traffic_log" and block.data["edge_hash"] == edge_hash:
-                ciphertext, exponent = block.data["speed"]
-                speed = ts.bfv_vector([ciphertext], self.facilitator_ctx)
+            if block.data["type"] == "encrypted_log" and block.data["edge_hash"] == edge_hash:
+                ciphertext = block.data["speed"]
+                speed = ts.bfv_vector_from(self.facilitator_ctx, b64_dec(ciphertext))
                 speeds += speed
                 sqspeeds += speed * speed
                 count += 1
             block = block.previous_block
         if count == 0:
-            speeds = ts.bfv_vector([self.max_cars * self.max_speed + self.bias + self.error],
-                                   self.facilitator_ctx)  # 20_000 is the max speed
-            sqspeeds = ts.bfv_vector([self.max_cars * self.max_speed * self.max_speed + self.bias + self.error],
-                                     self.facilitator_ctx)
+            speeds = ts.bfv_vector(self.facilitator_ctx, [self.max_cars * self.max_speed + self.error]
+                                   )  # 20_000 is the max speed
+            sqspeeds = ts.bfv_vector(self.facilitator_ctx,
+                                     [self.max_cars * self.max_speed * self.max_speed + self.error]
+                                     )
         return speeds, sqspeeds, count
 
     def _calculate_neighborhood_encrypted_traffic_data(self):
         traffic = {}
         for edge in tqdm(self.street_graph.edges):
-            speeds, sqspeeds, count = self._get_edge_average_speed(edge)
+            speeds, sqspeeds, count = self._get_edge_data(edge)
             self.speeds_count_per_street[edge] = count
             traffic[calc_edge_hash(edge)] = (b64_enc(speeds.serialize()), b64_enc(sqspeeds.serialize()))
         return traffic
@@ -330,11 +330,11 @@ class LocalBlockchainNode(BlockchainNode):
         start = datetime.datetime.now()
         traffic = self._calculate_neighborhood_encrypted_traffic_data()
         end = datetime.datetime.now()
-        self.calculating_encrypted_average_time = end - start
+        self.aggregation_time = end - start
         if not self.quiet:
             print(f"Local node {self.node_id}: Calculated encrypted traffic data in {end - start} seconds")
         traffic_block = {
-            "type": "f_a_encrypted_data" if self.first_node else "f_b_encrypted_data",
+            "type": "f_a_encrypted" if self.first_node else "f_b_encrypted",
             "traffic": traffic
         }
         self.blockchain.add_block(traffic_block)
@@ -384,17 +384,32 @@ class LocalBlockchainNode(BlockchainNode):
     # ============== end of step 9 ==============
 
     # ============== step 10 ==============
+    def count_edge_logs(self):
+        if len(self.speeds_count_per_street):
+            return
+        for edge in tqdm(self.street_graph.edges):
+            edge_hash = self.street_graph_edges_backward[edge]
+            block = self.blockchain.tail
+            count = 0
+            while block is not None and block.timestamp > self.facilitator_response_time:
+                if block.data["type"] == "encrypted_log" and block.data["edge_hash"] == edge_hash:
+                    count += 1
+                block = block.previous_block
+            self.speeds_count_per_street[edge] = count
+
     def approve_results(self):
         self.update_state()
         if self.state != NeighborHoodState.DECRYPTION_RESULT_RECEIVED:
             raise IncorrectStateForAction(self.state, "approve_results")
 
-        raw_decrypted_traffic = {}
+        self.count_edge_logs()
+
+        decrypted_traffic = {}
         for key, value in tqdm(self.f_a.items()):
             speed, speed_sq = value
             if key not in self.f_b:
                 if not self.quiet:
-                    print(f'key {key} not in f_b_encrypted_data')
+                    print(f'key {key} not in f_b_encrypted')
                 self.blockchain.add_block({
                     "type": "disapproved"
                 })
@@ -410,14 +425,14 @@ class LocalBlockchainNode(BlockchainNode):
                     "type": "disapproved"
                 })
                 return False
-            n = self.speeds_count_per_street[key]
+            n = self.speeds_count_per_street[self.street_graph_edges_forward[key]]
             average = speed / n
-            sigma2 = speed_sq - speed * speed / n
-            raw_decrypted_traffic[key] = int(speed / n), float()
+            variance = speed_sq - speed * speed / n
+            decrypted_traffic[key] = average, variance
 
-        for key, value in tqdm(self.f_b_encrypted_data.items()):
-            if key not in self.f_a_encrypted_data:
-                print(f'key {key} not in f_a_encrypted_data')
+        for key, value in tqdm(self.f_b.items()):
+            if key not in self.f_a:
+                print(f'key {key} not in f_a_encrypted')
                 self.blockchain.add_block({
                     "type": "disapproved"
                 })
@@ -425,21 +440,19 @@ class LocalBlockchainNode(BlockchainNode):
 
         self.blockchain.add_block({
             "type": "approved",
-            "traffic": raw_decrypted_traffic
+            "traffic": decrypted_traffic
         })
-        self.raw_decrypted_traffic = raw_decrypted_traffic
-        return raw_decrypted_traffic
+        if not self.quiet:
+            print(f"Local node {self.node_id}: Results approved.")
+        self.decrypted_traffic = decrypted_traffic
+        return decrypted_traffic
 
     # ============== end of step 10 ==============
 
     def update_facilitator_data(self, block):
-        self.facilitator_ctx = ts.context_from(block.data["facilitator_context"])
+        self.facilitator_ctx = ts.context_from(b64_dec(block.data["facilitator_ctx"]))
         self.facilitator_response_time = block.timestamp
 
-    def save_average_traffic(self, block):
-        for key, value in block.data["f_a_decrypted_average_traffic"].items():
-            speed, speed_sq = value
-            self.f_a[key] = int(speed), int(speed_sq)
-        for key, value in block.data["f_b_decrypted_average_traffic"].items():
-            speed, speed_sq = value
-            self.f_b[key] = speed, speed_sq
+    def save_traffic(self, block):
+        self.f_a = block.data["f_a"]
+        self.f_b = block.data["f_b"]
