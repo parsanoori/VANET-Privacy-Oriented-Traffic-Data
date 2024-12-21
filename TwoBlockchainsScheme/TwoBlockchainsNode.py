@@ -12,9 +12,9 @@ class StreetMapAlreadyInBlockchainError(Exception):
 
 
 class TwoBlockchainsNode(SingleBlockchainScheme.SingleBlockchainNode):
-    def __init__(self, localBlockchain: LocalBlockchain, globalBlockchain: Blockchain, neighborhood: str, quiet=False,
-                 sleep_time=0.2, traffic_update_interval_in_seconds=10):
-        super().__init__(localBlockchain, neighborhood, sleep_time=sleep_time,
+    def __init__(self, localBlockchain: LocalBlockchain, globalBlockchain: Blockchain, neighborhood: str, gml_file: str,
+                 quiet=False, sleep_time=0.2, traffic_update_interval_in_seconds=10):
+        super().__init__(localBlockchain, neighborhood, gml_file, sleep_time=sleep_time,
                          traffic_update_interva_in_seconds=traffic_update_interval_in_seconds, quiet=quiet)
         self.globalBlockchain = globalBlockchain
 
