@@ -24,11 +24,11 @@ class InvalidStateError(Exception):
 
 class GlobalBlockchainNode(BlockchainNode):
     def __init__(self, blockchain: Blockchain, sleep_time: float = 0.2, traffic_update_interval_in_seconds: int = 10,
-                 quiet=False):
+                 quiet=False, key_size=2048):
         super().__init__(blockchain)
         self.f_ab_decrypted_average_traffic: Dict[str, float] = {}
         self.f_cd_decrypted_average_traffic: Dict[str, float] = {}
-        self.key_pair = paillier.generate_paillier_keypair()
+        self.key_pair = paillier.generate_paillier_keypair(n_length=key_size)
         self.state = GlobalBlockchainNodeState.IDLE
         self.current_neighborhood = None
         self.thread = threading.Thread(target=self.run_service)

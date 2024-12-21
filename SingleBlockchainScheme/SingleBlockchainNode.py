@@ -15,14 +15,14 @@ class StreetMapAlreadyInBlockchainError(Exception):
 
 
 class SingleBlockchainNode(BlockchainNode):
-    def __init__(self, blockchain: Blockchain, neighborhood: str, sleep_time=0.2, traffic_update_interva_in_seconds=10,
-                 quiet=False):
+    def __init__(self, blockchain: Blockchain, neighborhood: str, gml_file: str, sleep_time=0.2,
+                 traffic_update_interva_in_seconds=10, quiet=False):
         super().__init__(blockchain)
         self.quiet = False
         self.last_update_time = datetime.datetime.now()
         self.latest_average_block = blockchain.head
         self.neighborhood = neighborhood
-        self.street_graph = gml.read_gml("./graphs/" + neighborhood + ".gml")
+        self.street_graph = gml.read_gml(gml_file)
         self.average_traffic_block_size = 0
         self.calculating_sum_time: datetime.timedelta = None
         self.thread = threading.Thread(target=self.run_service)
@@ -64,7 +64,7 @@ class SingleBlockchainNode(BlockchainNode):
             index += 1
         street_graph_edges_block = {
             "type": "street_graph",
-            "edges": list(self.street_graph_edges_forward.keys()),
+            "edges": list(self.hash_to_edge.keys()),
         }
         self.last_update_time = datetime.datetime.now()
         self.blockchain.add_block(street_graph_edges_block)
@@ -89,7 +89,7 @@ class SingleBlockchainNode(BlockchainNode):
 
     def _calculate_neighborhood_average_traffic(self):
         traffic = {}
-        #print("Calculating average traffic for neighborhood " + self.neighborhood + " in node " + str(self.node_id))
+        # print("Calculating average traffic for neighborhood " + self.neighborhood + " in node " + str(self.node_id))
         for edge in self.street_graph.edges:
             traffic[edge] = self._get_edge_average_speed(edge)
         return traffic

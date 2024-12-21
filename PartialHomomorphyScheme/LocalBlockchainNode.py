@@ -55,15 +55,18 @@ class IncorrectStateForAction(Exception):
 
 
 class LocalBlockchainNode(BlockchainNode):
-    def __init__(self, local_blockchain: LocalBlockchain, global_blockchain: Optional[Blockchain] = None,
+    def __init__(self, local_blockchain: LocalBlockchain, neighborhood_graph_path: str = "",
+                 global_blockchain: Optional[Blockchain] = None,
                  sleep_time: float = 0.2, traffic_update_interval_in_seconds: int = 10, quiet=False):
         # local blockchain node is primarily a local blockchain node, but it can also be a global blockchain node too
         neighborhood = local_blockchain.neighborhood
         BlockchainNode.__init__(self, local_blockchain)
         self.global_blockchain = global_blockchain
-        self.global_node = GlobalBlockchainNode(global_blockchain) if global_blockchain is not None else None
+        self.global_node = GlobalBlockchainNode(global_blockchain, sleep_time=sleep_time,
+                                                traffic_update_interval_in_seconds=traffic_update_interval_in_seconds,
+                                                quiet=quiet) if global_blockchain is not None else None
         self.neighborhood = neighborhood
-        self.street_graph = gml.read_gml("./graphs/" + neighborhood + ".gml")
+        self.street_graph = gml.read_gml(neighborhood_graph_path)
         self.street_graph_edges_forward: Dict = {}
         self.street_graph_edges_backward: Dict = {}
         self.add_street_data_to_node()
@@ -274,7 +277,10 @@ class LocalBlockchainNode(BlockchainNode):
     def send_encrypted_traffic_log(self, edge, speed):
         self.update_state()
         if self.state != NeighborHoodState.FACILITATOR_REQUEST_ANSWERED:
-            raise IncorrectStateForAction(self.state, "send_encrypted_traffic_log")
+            print(f'"send_encrypted_traffic_log" is incorrect action for state {self.state}')
+        if edge not in self.street_graph_edges_backward:
+            print(f'edge {edge} not in street graph')
+            return
         edge_hash = self.street_graph_edges_backward[edge]
         start = datetime.datetime.now()
         encrypted_speed = self.facilitator_pubkey.encrypt(speed)
@@ -411,7 +417,7 @@ class LocalBlockchainNode(BlockchainNode):
             raw_node_one = (value - self.b) / self.a
             node_two_value = self.f_cd_average_traffic[key]
             raw_node_two = (node_two_value - self.d) / self.c
-            if raw_node_one != raw_node_two:
+            if not raw_node_one-0.1 < raw_node_two < raw_node_two + 0.1:
                 if not self.quiet:
                     print(f'raw_node_one {raw_node_one} != raw_node_two {raw_node_two}')
                 self.blockchain.add_block({
