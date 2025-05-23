@@ -24,6 +24,7 @@ class TwoBlockchainsNode(SingleBlockchainScheme.SingleBlockchainNode):
             "speed": speed,
             "edge": edge,
         }
+        self.log_size = len(str(block_to_send))
         self.blockchain.add_block(block_to_send)
         return block_to_send
 

@@ -3,22 +3,44 @@ from .TwoBlockchainsNode import TwoBlockchainsNode
 from Blockchain import Blockchain
 import random
 from time import sleep
+from typing import List, Tuple, Dict
+import string
 
 
 class Simulation:
     def __init__(self, neighborhood: str, quiet: bool, random_speed_log_count: int = 100, sleep_time: float = 0.2,
-                 traffic_update_interval_in_seconds: int = 10):
+                 traffic_update_interval_in_seconds: int = 10, sumo_edge_ids = None, gml_file: str = ""):
+        if gml_file == "":
+            gml_file = './graphs/' + neighborhood + '.gml'
         self.neighborhood = neighborhood
         self.quiet = quiet
         self.localBlockchain = Blockchain.Blockchain()
         self.globalBlockchain = Blockchain.Blockchain()
         self.node = TwoBlockchainsNode(self.localBlockchain, self.globalBlockchain, neighborhood, sleep_time=sleep_time,
                                        traffic_update_interval_in_seconds=traffic_update_interval_in_seconds,
-                                       quiet=quiet)
+                                       quiet=quiet, gml_file=gml_file)
         self.neighborhood_map = self.node.street_graph
         self.edges = list(self.neighborhood_map.edges)
         self.random_speed_log_count = random_speed_log_count
         self.sending_traffic_logs_time: datetime.timedelta = None
+        self.edge_to_sumo_id: Dict[Tuple[int, int], string] = None
+        self.sumo_id_to_edge: Dict[string, Tuple[int, int]] = None
+        if sumo_edge_ids is not None:
+            self.add_sumo_edge_ids(sumo_edge_ids)
+
+    def add_sumo_edge_ids(self, sumo_edge_ids):
+        self.sumo_id_to_edge = {}
+        self.edge_to_sumo_id = {}
+        for start, end, id in sumo_edge_ids:
+            self.edge_to_sumo_id[(start, end)] = id
+            self.sumo_id_to_edge[id] = (start, end)
+
+    def send_sumo_traffic(self, sumo_edge_id, speed):
+        edge = self.sumo_id_to_edge[sumo_edge_id]
+        self.node.send_traffic_log(edge, speed)
+        if not self.quiet:
+            print(f"Sent traffic log for edge {edge} with speed {speed}")
+
 
     def send_random_traffic_log(self):
         edge = random.choice(list(self.edges))
@@ -64,7 +86,8 @@ class Simulation:
             "average_traffic_block_size": self.node.average_traffic_block_size,
             "local_blockchain_data_size": self.localBlockchain.get_data_size(),
             "global_blockchain_data_sze": self.globalBlockchain.get_data_size(),
-            "sending_traffic_logs_time": self.sending_traffic_logs_time.total_seconds()
+            "sending_traffic_logs_time": self.sending_traffic_logs_time.total_seconds(),
+            "log_size": self.node.log_size
         }
         return data
 

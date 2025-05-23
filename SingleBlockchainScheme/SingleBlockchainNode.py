@@ -1,3 +1,5 @@
+import os
+
 from Blockchain import Blockchain
 from Blockchain.BlockchainNode import BlockchainNode
 import datetime
@@ -24,6 +26,7 @@ class SingleBlockchainNode(BlockchainNode):
         self.neighborhood = neighborhood
         self.street_graph = gml.read_gml(gml_file)
         self.average_traffic_block_size = 0
+        self.log_size = 0
         self.calculating_sum_time: datetime.timedelta = None
         self.thread = threading.Thread(target=self.run_service)
         self.system_running = True
@@ -47,6 +50,7 @@ class SingleBlockchainNode(BlockchainNode):
             "edge": edge,
             "neighborhood": self.neighborhood
         }
+        self.log_size = len(str(block_to_send))
         self.blockchain.add_block(block_to_send)
         return block_to_send
 
